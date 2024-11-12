@@ -8,6 +8,6 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware(['my.cors'])->group(function () {
     include __DIR__.'/api/v1/auth.php';
 });
