@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\Auth\IsAuthenticated;
 use App\Http\Middleware\MyCORS;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'my.cors' => MyCORS::class,
+            'api.is.auth' => IsAuthenticated::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
