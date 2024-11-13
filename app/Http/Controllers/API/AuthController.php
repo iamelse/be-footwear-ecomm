@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Classes\APIResponseClass;
+use App\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +27,11 @@ class AuthController extends Controller
         DB::beginTransaction();
 
         try {
+            $role = Role::where('name', RoleEnum::COSTUMER->value)->first();
+            $roleID = $role ? $role->id : null;
+
             $user = User::create([
+                'role_id'       => $roleID,
                 'image_profile' => null,
                 'name'          => $request->name,
                 'email'         => $request->email,

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\RoleEnum;
+use App\Models\Role;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterRequest extends FormRequest
@@ -21,7 +23,11 @@ class RegisterRequest extends FormRequest
      */
     public function rules(): array
     {
+        $role = Role::where('name', RoleEnum::COSTUMER->value)->first();
+        $roleID = $role ? $role->id : null;
+        
         return [
+            'role_id'  => ['required', 'integer', 'in:' . $roleID],
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
