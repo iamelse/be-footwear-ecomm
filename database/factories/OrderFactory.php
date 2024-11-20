@@ -21,7 +21,7 @@ class OrderFactory extends Factory
             'user_id' => User::factory(),
             'order_date' => now(),
             'status' => $this->faker->randomElement(['pending', 'completed', 'cancelled']),
-            'total' => $this->faker->randomFloat(2, 100, 1000),
+            'total' => $this->faker->numberBetween(500000, 10000000),
         ];
     }
 }

@@ -24,7 +24,7 @@ class ShoeFactory extends Factory
             'brand_id' => Brand::factory(),
             'name' => $this->faker->unique()->word,
             'slug' => Str::slug($name) . '-' . Str::random(5),
-            'price' => $this->faker->randomFloat(2, 50, 300),
+            'price' => $this->faker->numberBetween(500000, 10000000),
             'description' => $this->faker->paragraph,
         ];
     }
