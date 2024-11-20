@@ -8,7 +8,11 @@ Route::get('/', function () {
 });
 
 Route::get('/migrate', function () {
+    // Run the migration and seed the database
     Artisan::call('migrate:fresh --seed');
     
-    return 'Migrations have been reset and seeded!';
+    // Generate JWT secret
+    Artisan::call('jwt:secret');
+    
+    return 'Migrations have been reset, seeded, and JWT secret generated!';
 });
