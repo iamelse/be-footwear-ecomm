@@ -25,6 +25,7 @@ class ShowCartItemResource extends JsonResource
                 'name' => $this->inventory->shoe->name,
                 'slug' => $this->inventory->shoe->slug,
                 'price' => $this->inventory->shoe->price,
+                'total_price' => $this->quantity * $this->inventory->shoe->price,
                 'image_url' => $imageUrl,
             ],
             'size' => [
