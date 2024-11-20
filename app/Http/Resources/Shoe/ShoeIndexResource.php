@@ -19,6 +19,7 @@ class ShoeIndexResource extends JsonResource
             'id' => $this->id,
             'brand_name' => $this->whenLoaded('brand') ? $this->brand->name : null,
             'name' => $this->name,
+            'slug' => $this->slug,
             'price' => $this->price,
             'color_count' => $this->whenLoaded('inventory') ? $this->inventory->count() : 0,
             'primary_image' => $this->whenLoaded('images', function () {

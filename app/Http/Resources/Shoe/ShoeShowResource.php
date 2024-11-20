@@ -15,22 +15,18 @@ class ShoeShowResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $colors = $this->inventory->pluck('color')->unique();
+        $sizes = $this->inventory->pluck('size')->unique();
+
         return [
-            'id' =>$this->id,
+            'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
             'price' => $this->price,
             'description' => $this->description,
             'images' => ShoeImageResource::collection($this->whenLoaded('images')),
-            'inventory' => $this->whenLoaded('inventory', function () {
-                return $this->inventory->map(function ($item) {
-                    return [
-                        'color' => $item->color,
-                        'size' => $item->size,
-                        'stock' => $item->stock,
-                    ];
-                });
-            }),
+            'colors' => $colors,
+            'sizes' => $sizes,
         ];
     }
 }

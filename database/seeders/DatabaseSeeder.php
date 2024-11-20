@@ -30,8 +30,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $customerRole = Role::create([
-            'name' => 'Customer',
-            'description' => 'Customer or buyer in the shop',
+            'name' => 'Costumer',
+            'description' => 'Costumer or buyer in the shop',
         ]);
 
         // Create users

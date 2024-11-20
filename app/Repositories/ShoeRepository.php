@@ -9,30 +9,24 @@ class ShoeRepository implements ShoeRepositoryInterface
 {
     public function index($filters = [])
     {
-        $dbDriver = env('DB_CONNECTION', 'mysql');
-
         $query = Shoe::with([
             'images' => fn($query) => $query->where('is_primary', true),
             'inventory',
         ])->withCount([
-            'inventory as color_count' => fn($query) => $dbDriver === 'pgsql'
-                ? $query->select('color')->distinct()
-                : $query->distinct('color'),
+            'inventory as color_count' => fn($query) => $query->selectRaw('COUNT(DISTINCT color)'),
         ]);
 
         if (!empty($filters['q'])) {
             $searchTerm = '%' . $filters['q'] . '%';
 
-            $query->where(function ($query) use ($searchTerm, $dbDriver) {
-                $query->where('name', $dbDriver === 'pgsql' ? 'ilike' : 'like', $searchTerm)
-                    ->orWhere('slug', $dbDriver === 'pgsql' ? 'ilike' : 'like', $searchTerm)
+            $query->where(function ($query) use ($searchTerm) {
+                $query->where('name', 'ilike', $searchTerm)
+                    ->orWhere('slug', 'ilike', $searchTerm)
                     ->orWhereRaw(
-                        $dbDriver === 'pgsql'
-                            ? "CAST(price AS TEXT) ILIKE ?"
-                            : "CAST(price AS CHAR) LIKE ?",
+                        "CAST(price AS TEXT) ILIKE ?",
                         [$searchTerm]
                     )
-                    ->orWhere('description', $dbDriver === 'pgsql' ? 'ilike' : 'like', $searchTerm);
+                    ->orWhere('description', 'ilike', $searchTerm);
             });
         }
 
