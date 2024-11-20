@@ -8,7 +8,7 @@ Route::get('/', function () {
 });
 
 Route::get('/migrate', function () {
-    Artisan::call('migrate');
+    Artisan::call('migrate:fresh --seed');
     
-    return 'Migrations are running...';
+    return 'Migrations have been reset and seeded!';
 });
