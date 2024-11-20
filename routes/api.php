@@ -16,4 +16,7 @@ Route::prefix('v1')->group(function () {
     });
     include __DIR__.'/api/v1/auth.php';
     include __DIR__.'/api/v1/fe/shoe.php';
+    Route::prefix('user')->group(function () {
+        include __DIR__.'/api/v1/user/cart.php';
+    });
 });
