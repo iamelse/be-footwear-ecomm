@@ -1,0 +1,109 @@
+Table brands {
+  id int [pk, increment]
+  logo text [null]
+  name varchar(100) [not null, unique]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table shoes {
+  id int [pk, increment]
+  brand_id int [not null, ref: > brands.id]
+  name varchar(100) [not null]
+  price decimal(10, 2) [not null]
+  description text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table shoe_images {
+  id int [pk, increment]
+  shoe_id int [not null, ref: > shoes.id]
+  image_url text [not null]
+  is_primary boolean [default: false]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table sizes {
+  id int [pk, increment]
+  size_us varchar(10)
+  size_eu varchar(10)
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table colors {
+  id int [pk, increment]
+  name varchar(50) [not null, unique]
+  hex_code varchar(7) [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table inventory {
+  id int [pk, increment]
+  shoe_id int [not null, ref: > shoes.id]
+  size_id int [not null, ref: > sizes.id]
+  color_id int [not null, ref: > colors.id]
+  stock int [not null, default: 0]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table users {
+  id int [pk, increment]
+  role_id int [not null, ref: > roles.id]
+  name varchar(100) [not null]
+  email varchar(100) [not null, unique]
+  password varchar(255) [not null]
+  address text
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table roles {
+  id int [pk, increment]
+  name varchar(50) [not null, unique]
+  description text [null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table orders {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  order_date timestamp [default: `now()`]
+  status varchar(50) [default: 'pending']
+  total decimal(10, 2)
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table order_items {
+  id int [pk, increment]
+  order_id int [not null, ref: > orders.id]
+  inventory_id int [not null, ref: > inventory.id]
+  quantity int [not null]
+  price decimal(10, 2) [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table carts {
+  id int [pk, increment]
+  user_id int [not null, ref: > users.id]
+  status varchar(50) [default: 'active']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
+
+Table cart_items {
+  id int [pk, increment]
+  cart_id int [not null, ref: > carts.id]
+  inventory_id int [not null, ref: > inventory.id]
+  quantity int [not null]
+  price decimal(10, 2) [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp
+}
