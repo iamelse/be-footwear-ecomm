@@ -17,8 +17,8 @@ Route::get('/migrate', function () {
     return 'Migrations have been reset, seeded, and JWT secret generated!';
 });
 
-Route::get('/dump-autoload', function () {
-    Artisan::call('dump-autoload');
-    
-    return 'dump autoload success';
+Route::get('/clear-cache', function () {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    return 'Config and cache cleared!';
 });
