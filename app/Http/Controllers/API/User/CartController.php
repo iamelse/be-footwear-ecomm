@@ -15,13 +15,23 @@ class CartController extends Controller
         $this->cartRepository = $cartRepository;
     }
 
-    public function addToCart(Request $request, string $slug)
+    public function store(Request $request, string $slug)
     {
         return $this->cartRepository->addToCart($request, $slug);
     }
 
-    public function showCart()
+    public function index()
     {
         return $this->cartRepository->showCart();
+    }
+
+    public function update(Request $request, string $slug)
+    {
+        return $this->cartRepository->updateCart($request, $slug);
+    }
+
+    public function destroy(Request $request, string $slug)
+    {
+        return $this->cartRepository->removeCart($request, $slug);
     }
 }

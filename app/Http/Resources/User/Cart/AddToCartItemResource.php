@@ -25,6 +25,7 @@ class AddToCartItemResource extends JsonResource
                     'size_us' => $this->inventory->size->size_us,
                     'size_eu' => $this->inventory->size->size_eu,
                     'size_uk' => $this->inventory->size->size_uk,
+                    'size_cm' => $this->inventory->size->size_cm
                 ],
                 'color' => [
                     'name' => $this->inventory->color->name,

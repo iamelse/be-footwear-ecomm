@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('size_us')->nullable();
             $table->string('size_eu')->nullable();
             $table->string('size_uk')->nullable();
+            $table->string('size_cm')->nullable();
             $table->timestamps();
         });
     }

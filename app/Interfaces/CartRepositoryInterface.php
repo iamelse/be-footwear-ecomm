@@ -8,6 +8,6 @@ interface CartRepositoryInterface
 {
     public function addToCart(Request $request, string $slug);
     public function showCart();
-    //public function removeItem($cartItemId);
-    //public function updateQuantity(Request $request, $cartItemId);
+    public function updateCart(Request $request, string $slug);
+    public function removeCart(Request $request, string $slug);
 }
