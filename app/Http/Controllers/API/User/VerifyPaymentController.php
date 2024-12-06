@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API\User;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Order;
 use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
@@ -41,8 +40,34 @@ class VerifyPaymentController extends Controller
             }
 
             $order = Order::findOrFail($orderId);
+            // Log::info('ORDER ID: ' . $orderId);
 
-            $this->_updateOrderStatus($order, $transactionStatus, $fraudStatus);
+            switch ($transactionStatus) {
+                case 'capture':
+                    if ($fraudStatus === 'accept') {
+                        $order->status = 'paid';
+                    } else if ($fraudStatus === 'challenge') {
+                        $order->status = 'pending';
+                    }
+                    break;
+                case 'settlement':
+                    $order->status = 'paid';
+                    break;
+                case 'pending':
+                    $order->status = 'pending';
+                    break;
+                case 'deny':
+                    $order->status = 'failed';
+                    break;
+                case 'expire':
+                    $order->status = 'expired';
+                    break;
+                case 'cancel':
+                    $order->status = 'cancelled';
+                    break;
+                default:
+                    break;
+            }
 
             $order->save();
 
@@ -53,33 +78,6 @@ class VerifyPaymentController extends Controller
                 'stack' => $e->getTraceAsString(),
             ]);
             return response()->json(['message' => 'Payment verification failed'], 500);
-        }
-    }
-
-    private function _updateOrderStatus(Order $order, string $transactionStatus, ?string $fraudStatus): void
-    {
-        switch ($transactionStatus) {
-            case 'capture':
-                $order->status = $fraudStatus === 'accept' ? 'paid' : 'pending';
-                break;
-            case 'settlement':
-                $order->status = 'paid';
-                break;
-            case 'pending':
-                $order->status = 'pending';
-                break;
-            case 'deny':
-                $order->status = 'failed';
-                break;
-            case 'expire':
-                $order->status = 'expired';
-                break;
-            case 'cancel':
-                $order->status = 'cancelled';
-                break;
-            default:
-                Log::warning("Unhandled transaction status: {$transactionStatus}");
-                break;
         }
     }
 }
