@@ -3,121 +3,83 @@
 namespace App\Http\Controllers\API\User;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\Order;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Midtrans\Config;
 use Midtrans\Notification;
 
 class VerifyPaymentController extends Controller
 {
+    public function __construct()
+    {
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
+        Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+    }
+
     public function verifyPayment()
     {
-        DB::beginTransaction();
-
         try {
-            $params = $this->__extractNotificationParams();
+            $notification = new Notification();
 
-            if (!$this->__verifySignature($params)) {
-                return $this->__sendResponse([], 'Invalid signature', 403, false);
+            $transactionStatus = $notification->transaction_status;
+            $paymentType = $notification->payment_type;
+            $fraudStatus = $notification->fraud_status;
+            $orderId = $notification->order_id;
+            $grossAmount = $notification->gross_amount;
+            $statusCode = $notification->status_code;
+            $receivedSignature = $notification->signature_key;
+
+            $serverKey = env('MIDTRANS_SERVER_KEY');
+            $generatedSignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+
+            if ($generatedSignature !== $receivedSignature) {
+                return response()->json(['message' => 'Invalid signature'], 403);
             }
 
-            $order = $this->__fetchOrder($params['order_id']);
+            $order = Order::findOrFail($orderId);
 
-            $updatedStatus = $this->__mapTransactionStatus($params);
-            $order->status = $updatedStatus;
+            $this->_updateOrderStatus($order, $transactionStatus, $fraudStatus);
+
             $order->save();
 
-            DB::commit();
-
-            return $this->__sendResponse([], 'Payment status updated successfully', 200, true);
+            return response()->json(['message' => 'Payment status updated successfully'], 200);
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Payment verification failed:', [
                 'error' => $e->getMessage(),
                 'stack' => $e->getTraceAsString(),
             ]);
-            return $this->__sendResponse([], 'Payment verification failed', 500, false);
+            return response()->json(['message' => 'Payment verification failed'], 500);
         }
     }
 
-    /**
-     * Extract notification parameters from Midtrans notification.
-     *
-     * @return array
-     */
-    private function __extractNotificationParams(): array
+    private function _updateOrderStatus(Order $order, string $transactionStatus, ?string $fraudStatus): void
     {
-        $notification = new Notification();
-
-        return [
-            'transaction_status' => $notification->transaction_status,
-            'fraud_status' => $notification->fraud_status,
-            'order_id' => $notification->order_id,
-            'gross_amount' => $notification->gross_amount,
-            'status_code' => $notification->status_code,
-            'received_signature' => $notification->signature_key,
-        ];
-    }
-
-    /**
-     * Verify the signature from Midtrans.
-     *
-     * @param array $params
-     * @return bool
-     */
-    private function __verifySignature(array $params): bool
-    {
-        $serverKey = env('MIDTRANS_SERVER_KEY');
-        $generatedSignature = hash('sha512', $params['order_id'] . $params['status_code'] . $params['gross_amount'] . $serverKey);
-
-        return $generatedSignature === $params['received_signature'];
-    }
-
-    /**
-     * Fetch the order by ID.
-     *
-     * @param int $orderId
-     * @return Order
-     */
-    private function __fetchOrder(int $orderId): Order
-    {
-        return Order::findOrFail($orderId);
-    }
-
-    /**
-     * Map transaction status to an order status.
-     *
-     * @param array $params
-     * @return string
-     */
-    private function __mapTransactionStatus(array $params): string
-    {
-        return match ($params['transaction_status']) {
-            'capture' => $params['fraud_status'] === 'accept' ? 'paid' : 'pending',
-            'settlement' => 'paid',
-            'pending' => 'pending',
-            'deny' => 'failed',
-            'expire' => 'expired',
-            'cancel' => 'cancelled',
-            default => 'unknown',
-        };
-    }
-
-    /**
-     * Send a response in a standard format.
-     *
-     * @param array $data
-     * @param string $message
-     * @param int $statusCode
-     * @param bool $success
-     * @return \Illuminate\Http\JsonResponse
-     */
-    private function __sendResponse(array $data, string $message, int $statusCode, bool $success)
-    {
-        return response()->json([
-            'success' => $success,
-            'message' => $message,
-            'data' => $data,
-        ], $statusCode);
+        switch ($transactionStatus) {
+            case 'capture':
+                $order->status = $fraudStatus === 'accept' ? 'paid' : 'pending';
+                break;
+            case 'settlement':
+                $order->status = 'paid';
+                break;
+            case 'pending':
+                $order->status = 'pending';
+                break;
+            case 'deny':
+                $order->status = 'failed';
+                break;
+            case 'expire':
+                $order->status = 'expired';
+                break;
+            case 'cancel':
+                $order->status = 'cancelled';
+                break;
+            default:
+                Log::warning("Unhandled transaction status: {$transactionStatus}");
+                break;
+        }
     }
 }
